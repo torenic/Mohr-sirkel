@@ -3,444 +3,232 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mohrs spenningssirkel</title>
-
-<script>
-window.MathJax = {
-  tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
-  svg: { fontCache: 'global' }
-};
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-
+<title>Mohrs sirkel</title>
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f2f5f8;
-  color:#111;
-}
-
-header{
-  background:#00509e;
-  color:white;
-  text-align:center;
-  padding:18px;
-}
-
-header h1{
-  margin:0;
-  font-size:28px;
-}
-
-header p{
-  margin:6px 0 0;
-  font-size:15px;
-}
-
-main{
-  max-width:1200px;
-  margin:auto;
-  padding:12px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:340px 1fr;
-  gap:14px;
-}
-
-.card{
-  background:white;
-  border-radius:14px;
-  padding:14px;
-  box-shadow:0 2px 10px #0002;
-  margin-bottom:14px;
-}
-
-label{
-  display:block;
-  margin-top:10px;
-  font-weight:bold;
-}
-
-input{
-  width:100%;
-  box-sizing:border-box;
-  padding:10px;
-  font-size:16px;
-  margin-top:4px;
-}
-
-button{
-  margin-top:14px;
-  width:100%;
-  padding:12px;
-  font-size:17px;
-  background:#00509e;
-  color:white;
-  border:0;
-  border-radius:8px;
-  cursor:pointer;
-}
-
-.canvasWrap{
-  width:100%;
-  overflow:hidden;
-}
-
-canvas{
-  width:100%;
-  height:480px;
-  display:block;
-  border:1px solid #ccc;
-  background:white;
-  border-radius:10px;
-}
-
-.result{
-  background:#eef6ff;
-  border-left:5px solid #00509e;
-  padding:10px;
-  margin:8px 0;
-}
-
-.small{
-  font-size:14px;
-  color:#333;
-  line-height:1.35;
-}
-
-.formula{
-  background:#f7f7f7;
-  padding:10px;
-  border-radius:10px;
-  margin:10px 0;
-  overflow-x:auto;
-}
-
-@media(max-width:850px){
-  main{
-    padding:8px;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  header h1{
-    font-size:24px;
-  }
-
-  canvas{
-    height:390px;
-  }
-
-  .card{
-    padding:12px;
-  }
-}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f2f5f8;color:#111}
+header{background:linear-gradient(135deg,#00509e,#002d62);color:white;text-align:center;padding:18px}
+header h1{margin:0;font-size:28px}
+header p{margin:6px 0 0;font-size:15px}
+.container{max-width:1200px;margin:auto;padding:14px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 3px 12px #0002}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{font-weight:bold;font-size:14px}
+input{width:100%;padding:9px;font-size:16px;border:1px solid #bbb;border-radius:8px;margin-top:4px}
+button{background:#00509e;color:white;border:none;border-radius:10px;padding:12px 18px;font-size:16px;margin-top:12px;cursor:pointer}
+button:hover{background:#003f7d}
+.result{font-size:17px;line-height:1.6}
+.highlight{background:#fff3b0;border-left:6px solid #f4c400;padding:12px;border-radius:10px;margin-top:10px}
+svg{width:100%;height:auto;background:white;border:1px solid #ddd;border-radius:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:850px){.two{grid-template-columns:1fr}}
+.box{background:#eef6ff;border:1px solid #b8d8f2;border-radius:12px;padding:12px;text-align:center;font-size:18px}
+.big{font-size:28px;font-weight:bold;color:#00509e}
 </style>
 </head>
 
 <body>
-
 <header>
-  <h1>Mohrs spenningssirkel</h1>
-  <p>Interaktiv beregning av hovedspenninger, skjærspenning og snittspenninger</p>
+<h1>Mohrs spenningssirkel</h1>
+<p>Plan spenningstilstand – tydelig sammenheng mellom virkelig vinkel og Mohr-vinkel</p>
 </header>
 
-<main>
+<div class="container">
 
+<div class="card">
+<h2>1. Input</h2>
 <div class="grid">
+<div>
+<label>Normalspenning σx [MPa]</label>
+<input id="sx" type="number" value="80">
+</div>
+<div>
+<label>Normalspenning σy [MPa]</label>
+<input id="sy" type="number" value="20">
+</div>
+<div>
+<label>Skjærspenning τxy [MPa]</label>
+<input id="txy" type="number" value="30">
+</div>
+<div>
+<label>Vinkel i spenningselement θ [grader]</label>
+<input id="theta" type="number" value="25">
+</div>
+</div>
+<button onclick="calculate()">Beregn</button>
 
-<section class="card">
-  <h2>Input</h2>
+<div class="highlight">
+<b>Viktig:</b> I Mohrs sirkel roterer punktet <b>2θ</b>.  
+Hvis spenningselementet dreies <b>25°</b>, flyttes punktet på Mohrs sirkel <b>50°</b>.
+</div>
+</div>
 
-  <label>Normal stress on x-plane, \( \sigma_x \) [MPa]</label>
-  <input id="sx" type="number" value="80">
+<div class="card">
+<h2>2. Valgt vinkel</h2>
+<div class="grid">
+<div class="box">
+Valgt vinkel i Mohr-diagrammet<br>
+<span id="mohrAngleBox" class="big">50°</span><br>
+<small>Dette er 2θ</small>
+</div>
+<div class="box">
+Virkelig vinkel i spenningselementet<br>
+<span id="realAngleBox" class="big">25°</span><br>
+<small>Dette er θ</small>
+</div>
+</div>
+</div>
 
-  <label>Normal stress on y-plane, \( \sigma_y \) [MPa]</label>
-  <input id="sy" type="number" value="20">
+<div class="card">
+<h2>3. Resultater</h2>
+<div id="results" class="result"></div>
+</div>
 
-  <label>Shear stress, \( \tau_{xy} \) [MPa]</label>
-  <input id="txy" type="number" value="30">
+<div class="two">
+<div class="card">
+<h2>4. Mohrs sirkel</h2>
+<svg id="mohrSvg" viewBox="0 0 700 560"></svg>
+</div>
 
-  <p class="small">
-    Positiv normalspenning = strekk. Negativ normalspenning = trykk.
-    Positiv skjærspenning følger valgt fortegnskonvensjon i diagrammet.
-  </p>
-
-  <label>Snittvinkel \( \theta \) [grader]</label>
-  <input id="theta" type="range" min="-90" max="90" value="25" step="1">
-  <p>Valgt vinkel: <b id="thetaText">25°</b></p>
-
-  <button onclick="calculate()">Beregn og tegn</button>
-</section>
-
-<section class="card">
-  <h2>Mohrs sirkel</h2>
-  <div class="canvasWrap">
-    <canvas id="mohr"></canvas>
-  </div>
-  <p class="small">
-    Sirkelens skjæring med horisontal akse gir \( \sigma_1 \) og \( \sigma_3 \).
-    Radiusen er \( \tau_{max} \).
-  </p>
-</section>
+<div class="card">
+<h2>5. Spenningselement</h2>
+<svg id="elementSvg" viewBox="0 0 700 560"></svg>
+</div>
+</div>
 
 </div>
 
-<section class="card">
-  <h2>Numeriske resultater</h2>
-  <div id="results"></div>
-</section>
-
-<section class="card">
-  <h2>Beregningformler</h2>
-
-  <div class="formula">
-    Senter:
-    \[
-    C = \frac{\sigma_x+\sigma_y}{2}
-    \]
-  </div>
-
-  <div class="formula">
-    Radius:
-    \[
-    R = \sqrt{\left(\frac{\sigma_x-\sigma_y}{2}\right)^2+\tau_{xy}^2}
-    \]
-  </div>
-
-  <div class="formula">
-    Hovedspenninger:
-    \[
-    \sigma_1 = C+R
-    \]
-    \[
-    \sigma_3 = C-R
-    \]
-  </div>
-
-  <div class="formula">
-    Maksimal skjærspenning:
-    \[
-    \tau_{max}=R
-    \]
-  </div>
-
-  <div class="formula">
-    Vinkel til hovedplan:
-    \[
-    \tan(2\theta_p)=\frac{2\tau_{xy}}{\sigma_x-\sigma_y}
-    \]
-  </div>
-
-  <div class="formula">
-    Spenninger på vilkårlig snitt:
-    \[
-    \sigma_\theta =
-    C + \frac{\sigma_x-\sigma_y}{2}\cos(2\theta)
-    + \tau_{xy}\sin(2\theta)
-    \]
-    \[
-    \tau_\theta =
-    -\frac{\sigma_x-\sigma_y}{2}\sin(2\theta)
-    + \tau_{xy}\cos(2\theta)
-    \]
-  </div>
-</section>
-
-<section class="card">
-  <h2>GitHub Pages</h2>
-  <p>
-    Filen skal hete <b>index.html</b> med liten i.
-    GitHub Pages skal stå på <b>main</b> og <b>/(root)</b>.
-  </p>
-</section>
-
-</main>
-
 <script>
+function v(id){return parseFloat(document.getElementById(id).value)||0}
+function deg(rad){return rad*180/Math.PI}
+function rad(deg){return deg*Math.PI/180}
+
 function calculate(){
-  const sx = parseFloat(document.getElementById("sx").value);
-  const sy = parseFloat(document.getElementById("sy").value);
-  const txy = parseFloat(document.getElementById("txy").value);
-  const thetaDeg = parseFloat(document.getElementById("theta").value);
+const sx=v("sx"), sy=v("sy"), txy=v("txy"), theta=v("theta");
+const c=(sx+sy)/2;
+const r=Math.sqrt(Math.pow((sx-sy)/2,2)+txy*txy);
 
-  document.getElementById("thetaText").innerText = thetaDeg + "°";
+const twoTheta=2*theta;
+const th=rad(theta);
 
-  const C = (sx + sy) / 2;
-  const A = (sx - sy) / 2;
-  const R = Math.sqrt(A*A + txy*txy);
+const sxp=c+(sx-sy)/2*Math.cos(2*th)+txy*Math.sin(2*th);
+const syp=c-(sx-sy)/2*Math.cos(2*th)-txy*Math.sin(2*th);
+const txyp=-(sx-sy)/2*Math.sin(2*th)+txy*Math.cos(2*th);
 
-  const s1 = C + R;
-  const s3 = C - R;
-  const tmax = R;
+const s1=c+r;
+const s2=c-r;
+const tmax=r;
 
-  const thetaP = 0.5 * Math.atan2(2*txy, sx - sy) * 180 / Math.PI;
+document.getElementById("mohrAngleBox").innerHTML=twoTheta.toFixed(1)+"°";
+document.getElementById("realAngleBox").innerHTML=theta.toFixed(1)+"°";
 
-  const th = thetaDeg * Math.PI / 180;
-  const sigmaTheta = C + A*Math.cos(2*th) + txy*Math.sin(2*th);
-  const tauTheta = -A*Math.sin(2*th) + txy*Math.cos(2*th);
+document.getElementById("results").innerHTML=`
+Sentrum C = <b>${c.toFixed(2)} MPa</b><br>
+Radius R = τmax = <b>${r.toFixed(2)} MPa</b><br>
+Hovedspenning σ1 = <b>${s1.toFixed(2)} MPa</b><br>
+Hovedspenning σ2 = <b>${s2.toFixed(2)} MPa</b><br>
+Transformert σx′ = <b>${sxp.toFixed(2)} MPa</b><br>
+Transformert σy′ = <b>${syp.toFixed(2)} MPa</b><br>
+Transformert τx′y′ = <b>${txyp.toFixed(2)} MPa</b>
+`;
 
-  document.getElementById("results").innerHTML = `
-    <div class="result"><b>Senter, C:</b> ${C.toFixed(2)} MPa</div>
-    <div class="result"><b>Radius, R:</b> ${R.toFixed(2)} MPa</div>
-    <div class="result"><b>Største hovedspenning, σ₁:</b> ${s1.toFixed(2)} MPa</div>
-    <div class="result"><b>Minste hovedspenning, σ₃:</b> ${s3.toFixed(2)} MPa</div>
-    <div class="result"><b>Maksimal skjærspenning, τmax:</b> ±${tmax.toFixed(2)} MPa</div>
-    <div class="result"><b>Vinkel til hovedplan, θp:</b> ${thetaP.toFixed(2)}°</div>
-    <div class="result"><b>Normalspenning på valgt snitt, σθ:</b> ${sigmaTheta.toFixed(2)} MPa</div>
-    <div class="result"><b>Skjærspenning på valgt snitt, τθ:</b> ${tauTheta.toFixed(2)} MPa</div>
-  `;
-
-  drawMohr(C, R, sx, sy, txy, s1, s3, sigmaTheta, tauTheta);
+drawMohr(sx,sy,txy,c,r,theta,twoTheta,sxp,txyp);
+drawElement(theta,sx,sy,txy,sxp,syp,txyp);
 }
 
-function drawMohr(C, R, sx, sy, txy, s1, s3, sigmaTheta, tauTheta){
-  const canvas = document.getElementById("mohr");
-  const ctx = canvas.getContext("2d");
+function drawMohr(sx,sy,txy,c,r,theta,twoTheta,sxp,txyp){
+const svg=document.getElementById("mohrSvg");
+const W=700,H=560,cx=350,cy=280;
+const margin=90;
+const maxVal=Math.max(Math.abs(c+r),Math.abs(c-r),Math.abs(txy),Math.abs(txyp),1);
+const scale=(W/2-margin)/maxVal;
 
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * window.devicePixelRatio;
-  canvas.height = rect.height * window.devicePixelRatio;
-  ctx.setTransform(window.devicePixelRatio,0,0,window.devicePixelRatio,0,0);
+function X(s){return cx+s*scale}
+function Y(t){return cy-t*scale}
 
-  const W = rect.width;
-  const H = rect.height;
+let html="";
+html+=`<line x1="45" y1="${cy}" x2="655" y2="${cy}" stroke="#111" stroke-width="2"/>`;
+html+=`<line x1="${cx}" y1="45" x2="${cx}" y2="515" stroke="#111" stroke-width="2"/>`;
+html+=`<text x="650" y="${cy-10}" font-size="15" text-anchor="end">σ [MPa]</text>`;
+html+=`<text x="${cx+10}" y="60" font-size="15">τ [MPa]</text>`;
 
-  ctx.clearRect(0,0,W,H);
+html+=`<circle cx="${X(c)}" cy="${Y(0)}" r="${r*scale}" fill="none" stroke="#00509e" stroke-width="4"/>`;
+html+=`<circle cx="${X(c)}" cy="${Y(0)}" r="5" fill="#111"/>`;
+html+=`<text x="${X(c)+8}" y="${Y(0)-8}" font-size="14">C</text>`;
 
-  const mobile = window.innerWidth < 700;
-  const margin = mobile ? 88 : 78;
+const p1x=X(sx), p1y=Y(txy);
+const p2x=X(sy), p2y=Y(-txy);
 
-  const safeR = Math.max(R, 1);
-  const minX = Math.min(s3, sx, sy, C-R) - safeR*0.55 - 15;
-  const maxX = Math.max(s1, sx, sy, C+R) + safeR*0.55 + 15;
-  const maxY = safeR*1.75 + 15;
+html+=`<line x1="${p1x}" y1="${p1y}" x2="${p2x}" y2="${p2y}" stroke="#777" stroke-width="2" stroke-dasharray="6 5"/>`;
+html+=`<circle cx="${p1x}" cy="${p1y}" r="6" fill="#c00000"/>`;
+html+=`<text x="${p1x+10}" y="${p1y-10}" font-size="14">X(σx, τxy)</text>`;
+html+=`<circle cx="${p2x}" cy="${p2y}" r="6" fill="#00a050"/>`;
+html+=`<text x="${p2x+10}" y="${p2y+20}" font-size="14">Y(σy, -τxy)</text>`;
 
-  const scaleX = (W - 2*margin) / (maxX - minX);
-  const scaleY = (H - 2*margin) / (2*maxY);
-  const scale = Math.max(1, Math.min(scaleX, scaleY));
+const px=X(sxp), py=Y(txyp);
 
-  function X(v){ return margin + (v - minX) * scale; }
-  function Y(v){ return H/2 - v * scale; }
+/* gul radius viser Mohr-rotasjonen = 2θ */
+html+=`<line x1="${X(c)}" y1="${Y(0)}" x2="${px}" y2="${py}" stroke="#f4c400" stroke-width="6"/>`;
+html+=`<circle cx="${px}" cy="${py}" r="8" fill="#f4c400" stroke="#111" stroke-width="1"/>`;
+html+=`<text x="${px+12}" y="${py-12}" font-size="14">Valgt punkt</text>`;
 
-  ctx.font = mobile ? "12px Arial" : "15px Arial";
-  ctx.lineCap = "round";
+const arcR=55;
+const startAng=Math.atan2(p1y-Y(0),p1x-X(c));
+const endAng=Math.atan2(py-Y(0),px-X(c));
+const ax1=X(c)+arcR*Math.cos(startAng);
+const ay1=Y(0)+arcR*Math.sin(startAng);
+const ax2=X(c)+arcR*Math.cos(endAng);
+const ay2=Y(0)+arcR*Math.sin(endAng);
 
-  // Akser
-  ctx.strokeStyle = "#999";
-  ctx.lineWidth = 1.4;
+html+=`<path d="M ${ax1} ${ay1} A ${arcR} ${arcR} 0 0 1 ${ax2} ${ay2}" fill="none" stroke="#f4c400" stroke-width="4"/>`;
+html+=`<text x="${X(c)+70}" y="${Y(0)-55}" font-size="15" fill="#9a7600">Mohr-vinkel = 2θ = ${twoTheta.toFixed(1)}°</text>`;
+html+=`<text x="350" y="535" font-size="15" text-anchor="middle" fill="#9a7600">Gul radius peker til valgt spenningstilstand. Vinkelen i sirkel er alltid dobbelt virkelig vinkel.</text>`;
 
-  ctx.beginPath();
-  ctx.moveTo(12, Y(0));
-  ctx.lineTo(W-12, Y(0));
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(X(0), 12);
-  ctx.lineTo(X(0), H-12);
-  ctx.stroke();
-
-  ctx.fillStyle = "#111";
-  ctx.fillText("σ", W-30, Y(0)-8);
-  ctx.fillText("τ", X(0)+8, 22);
-
-  // Sirkel
-  ctx.strokeStyle = "#00509e";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(X(C), Y(0), R*scale, 0, 2*Math.PI);
-  ctx.stroke();
-
-  // Diameter mellom opprinnelige punkter
-  ctx.strokeStyle = "#c00000";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(X(sx), Y(txy));
-  ctx.lineTo(X(sy), Y(-txy));
-  ctx.stroke();
-
-  // Valgt snitt radius
-  ctx.strokeStyle = "#ff8c00";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(X(C), Y(0));
-  ctx.lineTo(X(sigmaTheta), Y(tauTheta));
-  ctx.stroke();
-
-  // Hjelpelinjer
-  ctx.setLineDash([5,5]);
-  ctx.strokeStyle = "#ff8c00";
-  ctx.lineWidth = 1.3;
-
-  ctx.beginPath();
-  ctx.moveTo(X(sigmaTheta), Y(tauTheta));
-  ctx.lineTo(X(sigmaTheta), Y(0));
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(X(sigmaTheta), Y(tauTheta));
-  ctx.lineTo(X(C), Y(tauTheta));
-  ctx.stroke();
-
-  ctx.setLineDash([]);
-
-  // Punkter
-  point(ctx, X(C), Y(0), "black", "C", mobile);
-  point(ctx, X(s1), Y(0), "#008000", "σ₁", mobile);
-  point(ctx, X(s3), Y(0), "#008000", "σ₃", mobile);
-  point(ctx, X(C), Y(R), "#800080", "τmax", mobile);
-  point(ctx, X(C), Y(-R), "#800080", "-τmax", mobile);
-  point(ctx, X(sx), Y(txy), "#c00000", "σx,τxy", mobile);
-  point(ctx, X(sy), Y(-txy), "#c00000", "σy,-τxy", mobile);
-  point(ctx, X(sigmaTheta), Y(tauTheta), "#ff8c00", "snitt θ", mobile);
-
-  // Tallverdier på figuren
-  ctx.fillStyle = "#ff8c00";
-  ctx.font = mobile ? "11px Arial" : "14px Arial";
-  ctx.fillText("σθ=" + sigmaTheta.toFixed(1), clamp(X(sigmaTheta)+8, 8, W-85), clamp(Y(0)-8, 14, H-8));
-  ctx.fillText("τθ=" + tauTheta.toFixed(1), clamp(X(C)+8, 8, W-85), clamp(Y(tauTheta)-8, 14, H-8));
-
-  ctx.fillStyle = "#555";
-  ctx.font = mobile ? "10px Arial" : "13px Arial";
-  ctx.fillText("Mohrs sirkel: x-akse = normalspenning σ, y-akse = skjærspenning τ", 12, H-12);
+html+=`<text x="70" y="35" font-size="18" font-weight="bold">Mohrs sirkel</text>`;
+svg.innerHTML=html;
 }
 
-function point(ctx, x, y, color, label, mobile){
-  const r = mobile ? 4.5 : 5.5;
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, 2*Math.PI);
-  ctx.fill();
+function drawElement(theta,sx,sy,txy,sxp,syp,txyp){
+const svg=document.getElementById("elementSvg");
+const cx=350,cy=280;
+const size=170;
+const th=rad(theta);
 
-  ctx.font = mobile ? "11px Arial" : "14px Arial";
-  ctx.fillStyle = color;
-
-  let lx = x + 7;
-  let ly = y - 7;
-
-  const W = ctx.canvas.getBoundingClientRect().width;
-  const H = ctx.canvas.getBoundingClientRect().height;
-
-  lx = clamp(lx, 6, W - 70);
-  ly = clamp(ly, 14, H - 8);
-
-  ctx.fillText(label, lx, ly);
+function rot(x,y){
+return {
+x:cx+x*Math.cos(th)-y*Math.sin(th),
+y:cy+x*Math.sin(th)+y*Math.cos(th)
+};
 }
 
-function clamp(v, min, max){
-  return Math.max(min, Math.min(max, v));
-}
+const p=[
+rot(-size/2,-size/2),
+rot(size/2,-size/2),
+rot(size/2,size/2),
+rot(-size/2,size/2)
+];
 
-document.getElementById("theta").addEventListener("input", calculate);
-window.addEventListener("resize", calculate);
+let html="";
+html+=`<text x="70" y="35" font-size="18" font-weight="bold">Spenningselement</text>`;
+
+html+=`<polygon points="${p.map(q=>q.x+','+q.y).join(' ')}" fill="#eef6ff" stroke="#00509e" stroke-width="4"/>`;
+
+html+=`<line x1="${cx-230}" y1="${cy}" x2="${cx+230}" y2="${cy}" stroke="#aaa" stroke-width="2"/>`;
+html+=`<line x1="${cx}" y1="${cy+230}" x2="${cx}" y2="${cy-230}" stroke="#aaa" stroke-width="2"/>`;
+html+=`<text x="${cx+235}" y="${cy-8}" font-size="14">x</text>`;
+html+=`<text x="${cx+10}" y="${cy-235}" font-size="14">y</text>`;
+
+html+=`<path d="M ${cx+70} ${cy} A 70 70 0 0 1 ${cx+70*Math.cos(th)} ${cy+70*Math.sin(th)}" fill="none" stroke="#f4c400" stroke-width="5"/>`;
+html+=`<text x="${cx+80}" y="${cy+45}" font-size="16" fill="#9a7600">θ = ${theta.toFixed(1)}°</text>`;
+html+=`<text x="350" y="515" font-size="15" text-anchor="middle" fill="#9a7600">Dette er virkelig fysisk vinkel i spenningselementet.</text>`;
+
+html+=`<text x="70" y="420" font-size="15">Opprinnelig: σx=${sx} MPa, σy=${sy} MPa, τxy=${txy} MPa</text>`;
+html+=`<text x="70" y="448" font-size="15">Etter rotasjon: σx′=${sxp.toFixed(1)} MPa, σy′=${syp.toFixed(1)} MPa, τx′y′=${txyp.toFixed(1)} MPa</text>`;
+
+svg.innerHTML=html;
+}
 
 calculate();
 </script>
-
 </body>
 </html>
