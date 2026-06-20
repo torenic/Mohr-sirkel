@@ -1,0 +1,2 @@
+# Mohr-sirkel
+Mohrs sirkel 
