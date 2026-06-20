@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mohrs spenningssirkel</title>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)'], ['$', '$']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f2f5f8;
+  color:#111;
+}
+header{
+  background:#00509e;
+  color:white;
+  padding:22px;
+  text-align:center;
+}
+main{
+  max-width:1200px;
+  margin:auto;
+  padding:18px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:340px 1fr;
+  gap:18px;
+}
+.card{
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  box-shadow:0 2px 10px #0002;
+}
+label{
+  display:block;
+  margin-top:12px;
+  font-weight:bold;
+}
+input{
+  width:100%;
+  padding:10px;
+  font-size:16px;
+  margin-top:4px;
+}
+button{
+  margin-top:16px;
+  width:100%;
+  padding:12px;
+  font-size:17px;
+  background:#00509e;
+  color:white;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+}
+canvas{
+  width:100%;
+  height:520px;
+  border:1px solid #ccc;
+  background:white;
+}
+.result{
+  background:#eef6ff;
+  border-left:5px solid #00509e;
+  padding:10px;
+  margin:8px 0;
+}
+.small{
+  font-size:14px;
+  color:#333;
+}
+.formula{
+  background:#f7f7f7;
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+}
+@media(max-width:850px){
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Mohrs spenningssirkel</h1>
+  <p>Plan spenningstilstand: normalspenninger, skjærspenning, hovedspenninger og vinkler</p>
+</header>
+
+<main>
+
+<div class="grid">
+
+<section class="card">
+  <h2>Input</h2>
+
+  <label>Normal stress on x-plane, \( \sigma_x \) [MPa]</label>
+  <input id="sx" type="number" value="80">
+
+  <label>Normal stress on y-plane, \( \sigma_y \) [MPa]</label>
+  <input id="sy" type="number" value="20">
+
+  <label>Shear stress, \( \tau_{xy} \) [MPa]</label>
+  <input id="txy" type="number" value="30">
+
+  <p class="small">
+    Positiv normalspenning = strekk. Negativ normalspenning = trykk.
+    Her brukes positiv \( \tau_{xy} \) som positiv skjærretning i diagrammet.
+  </p>
+
+  <label>Snittvinkel \( \theta \) [grader]</label>
+  <input id="theta" type="range" min="-90" max="90" value="25" step="1">
+  <p>Valgt vinkel: <b id="thetaText">25°</b></p>
+
+  <button onclick="calculate()">Beregn og tegn</button>
+</section>
+
+<section class="card">
+  <h2>Mohrs sirkel</h2>
+  <canvas id="mohr" width="900" height="520"></canvas>
+</section>
+
+</div>
+
+<section class="card">
+  <h2>Numeriske resultater</h2>
+  <div id="results"></div>
+</section>
+
+<section class="card">
+  <h2>Beregningformler</h2>
+
+  <div class="formula">
+    Senter:
+    \[
+    C = \frac{\sigma_x+\sigma_y}{2}
+    \]
+  </div>
+
+  <div class="formula">
+    Radius:
+    \[
+    R = \sqrt{\left(\frac{\sigma_x-\sigma_y}{2}\right)^2+\tau_{xy}^2}
+    \]
+  </div>
+
+  <div class="formula">
+    Hovedspenninger:
+    \[
+    \sigma_1 = C+R
+    \]
+    \[
+    \sigma_3 = C-R
+    \]
+  </div>
+
+  <div class="formula">
+    Maksimal skjærspenning:
+    \[
+    \tau_{max}=R
+    \]
+  </div>
+
+  <div class="formula">
+    Vinkel til hovedplan:
+    \[
+    \tan(2\theta_p)=\frac{2\tau_{xy}}{\sigma_x-\sigma_y}
+    \]
+  </div>
+
+  <div class="formula">
+    Spenninger på et vilkårlig snitt:
+    \[
+    \sigma_\theta =
+    C + \frac{\sigma_x-\sigma_y}{2}\cos(2\theta)
+    + \tau_{xy}\sin(2\theta)
+    \]
+    \[
+    \tau_\theta =
+    -\frac{\sigma_x-\sigma_y}{2}\sin(2\theta)
+    + \tau_{xy}\cos(2\theta)
+    \]
+  </div>
+</section>
+
+<section class="card">
+  <h2>Slik legger du inn i GitHub Pages</h2>
+  <ol>
+    <li>Gå til GitHub-repositoriet ditt.</li>
+    <li>Trykk <b>Add file</b> → <b>Create new file</b>.</li>
+    <li>Kall filen for eksempel <b>mohr.html</b> eller <b>index.html</b>.</li>
+    <li>Lim inn hele koden over.</li>
+    <li>Trykk <b>Commit changes</b>.</li>
+    <li>Gå til <b>Settings</b> → <b>Pages</b>.</li>
+    <li>Velg branch <b>main</b> og folder <b>/root</b>.</li>
+    <li>Åpne siden med:
+      <br>
+      <code>https://dittbrukernavn.github.io/repositorynavn/mohr.html</code>
+    </li>
+  </ol>
+</section>
+
+</main>
+
+<script>
+function calculate(){
+  const sx = parseFloat(document.getElementById("sx").value);
+  const sy = parseFloat(document.getElementById("sy").value);
+  const txy = parseFloat(document.getElementById("txy").value);
+  const thetaDeg = parseFloat(document.getElementById("theta").value);
+  document.getElementById("thetaText").innerText = thetaDeg + "°";
+
+  const C = (sx + sy) / 2;
+  const A = (sx - sy) / 2;
+  const R = Math.sqrt(A*A + txy*txy);
+
+  const s1 = C + R;
+  const s3 = C - R;
+  const tmax = R;
+
+  const thetaP = 0.5 * Math.atan2(2*txy, sx - sy) * 180 / Math.PI;
+
+  const th = thetaDeg * Math.PI / 180;
+  const sigmaTheta = C + A*Math.cos(2*th) + txy*Math.sin(2*th);
+  const tauTheta = -A*Math.sin(2*th) + txy*Math.cos(2*th);
+
+  document.getElementById("results").innerHTML = `
+    <div class="result"><b>Senter, C:</b> ${C.toFixed(2)} MPa</div>
+    <div class="result"><b>Radius, R:</b> ${R.toFixed(2)} MPa</div>
+    <div class="result"><b>Største hovedspenning, σ₁:</b> ${s1.toFixed(2)} MPa</div>
+    <div class="result"><b>Minste hovedspenning, σ₃:</b> ${s3.toFixed(2)} MPa</div>
+    <div class="result"><b>Maksimal skjærspenning, τmax:</b> ±${tmax.toFixed(2)} MPa</div>
+    <div class="result"><b>Vinkel til hovedplan, θp:</b> ${thetaP.toFixed(2)}°</div>
+    <div class="result"><b>Normalspenning på valgt snitt, σθ:</b> ${sigmaTheta.toFixed(2)} MPa</div>
+    <div class="result"><b>Skjærspenning på valgt snitt, τθ:</b> ${tauTheta.toFixed(2)} MPa</div>
+  `;
+
+  drawMohr(C, R, sx, sy, txy, s1, s3, sigmaTheta, tauTheta);
+}
+
+function drawMohr(C, R, sx, sy, txy, s1, s3, sigmaTheta, tauTheta){
+  const canvas = document.getElementById("mohr");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const margin = 70;
+
+  const minX = Math.min(s3, sx, sy, C-R) - R*0.35 - 10;
+  const maxX = Math.max(s1, sx, sy, C+R) + R*0.35 + 10;
+  const maxY = R*1.45 + 10;
+
+  const scaleX = (W - 2*margin) / (maxX - minX);
+  const scaleY = (H - 2*margin) / (2*maxY);
+  const scale = Math.min(scaleX, scaleY);
+
+  function X(v){ return margin + (v - minX) * scale; }
+  function Y(v){ return H/2 - v * scale; }
+
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "#999";
+
+  // Akser
+  ctx.beginPath();
+  ctx.moveTo(margin, Y(0));
+  ctx.lineTo(W-margin, Y(0));
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(X(0), margin);
+  ctx.lineTo(X(0), H-margin);
+  ctx.stroke();
+
+  ctx.fillStyle = "#111";
+  ctx.font = "16px Arial";
+  ctx.fillText("σ [MPa]", W-margin-60, Y(0)-10);
+  ctx.fillText("τ [MPa]", X(0)+10, margin+10);
+
+  // Sirkel
+  ctx.strokeStyle = "#00509e";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(X(C), Y(0), R*scale, 0, 2*Math.PI);
+  ctx.stroke();
+
+  // Diameter mellom opprinnelige punkter
+  ctx.strokeStyle = "#c00000";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(X(sx), Y(txy));
+  ctx.lineTo(X(sy), Y(-txy));
+  ctx.stroke();
+
+  // Senter
+  point(ctx, X(C), Y(0), "black", "C");
+
+  // Hovedspenninger
+  point(ctx, X(s1), Y(0), "#008000", "σ₁");
+  point(ctx, X(s3), Y(0), "#008000", "σ₃");
+
+  // Maks skjær
+  point(ctx, X(C), Y(R), "#800080", "τmax");
+  point(ctx, X(C), Y(-R), "#800080", "-τmax");
+
+  // Originale punkter
+  point(ctx, X(sx), Y(txy), "#c00000", "(σx, τxy)");
+  point(ctx, X(sy), Y(-txy), "#c00000", "(σy, -τxy)");
+
+  // Valgt snitt
+  point(ctx, X(sigmaTheta), Y(tauTheta), "#ff8c00", "valgt snitt");
+
+  ctx.strokeStyle = "#ff8c00";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(X(C), Y(0));
+  ctx.lineTo(X(sigmaTheta), Y(tauTheta));
+  ctx.stroke();
+
+  // Hjelpelinjer valgt snitt
+  ctx.setLineDash([6,6]);
+  ctx.strokeStyle = "#ff8c00";
+  ctx.beginPath();
+  ctx.moveTo(X(sigmaTheta), Y(tauTheta));
+  ctx.lineTo(X(sigmaTheta), Y(0));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(X(sigmaTheta), Y(tauTheta));
+  ctx.lineTo(X(C), Y(tauTheta));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = "#ff8c00";
+  ctx.fillText("σθ = " + sigmaTheta.toFixed(1), X(sigmaTheta)+8, Y(0)-8);
+  ctx.fillText("τθ = " + tauTheta.toFixed(1), X(C)+8, Y(tauTheta)-8);
+}
+
+function point(ctx, x, y, color, label){
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, 6, 0, 2*Math.PI);
+  ctx.fill();
+  ctx.font = "15px Arial";
+  ctx.fillText(label, x+9, y-9);
+}
+
+document.getElementById("theta").addEventListener("input", calculate);
+calculate();
+</script>
+
+</body>
+</html> 
